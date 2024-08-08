@@ -1,0 +1,1926 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "3d3a1ec5",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:34.833958Z",
+     "iopub.status.busy": "2024-08-08T13:37:34.833610Z",
+     "iopub.status.idle": "2024-08-08T13:37:47.826486Z",
+     "shell.execute_reply": "2024-08-08T13:37:47.825200Z"
+    },
+    "papermill": {
+     "duration": 13.004833,
+     "end_time": "2024-08-08T13:37:47.829289",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:34.824456",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Requirement already satisfied: nltk in /opt/conda/lib/python3.10/site-packages (3.2.4)\r\n",
+      "Requirement already satisfied: six in /opt/conda/lib/python3.10/site-packages (from nltk) (1.16.0)\r\n"
+     ]
+    }
+   ],
+   "source": [
+    "!pip install nltk"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "1f46d53a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:47.846186Z",
+     "iopub.status.busy": "2024-08-08T13:37:47.845137Z",
+     "iopub.status.idle": "2024-08-08T13:37:47.851918Z",
+     "shell.execute_reply": "2024-08-08T13:37:47.850956Z"
+    },
+    "papermill": {
+     "duration": 0.017138,
+     "end_time": "2024-08-08T13:37:47.854012",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:47.836874",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "paragraph = \"\"\"\n",
+    "The history of artificial intelligence (AI) began in antiquity, with myths, stories and rumors of artificial beings endowed with intelligence or consciousness by master craftsmen. The seeds of modern AI were planted by philosophers who attempted to describe the process of human thinking as the mechanical manipulation of symbols. This work culminated in the invention of the programmable digital computer in the 1940s, a machine based on the abstract essence of mathematical reasoning. This device and the ideas behind it inspired a handful of scientists to begin seriously discussing the possibility of building an electronic brain.\n",
+    "\n",
+    "The field of AI research was founded at a workshop held on the campus of Dartmouth College in the U.S. during the summer of 1956.[1] Those who attended would become the leaders of AI research for decades. Many of them predicted that a machine as intelligent as a human being would exist in no more than a generation, and they were given millions of dollars to make this vision come true.[2]\n",
+    "\n",
+    "Eventually, it became obvious that researchers had grossly underestimated the difficulty of the project.[3] In 1974, in response to the criticism from James Lighthill and ongoing pressure from the U.S. Congress, the U.S. and British Governments stopped funding undirected research into artificial intelligence. Seven years later, a visionary initiative by the Japanese Government inspired governments and industry to provide AI with billions of dollars, but by the late 1980s the investors became disillusioned and withdrew funding again. The difficult years that followed would later be known as an \"AI winter\". AI was criticized in the press and avoided by industry until the mid-2000s, but research and funding continued to grow under other names.\n",
+    "\n",
+    "In the 1990s and early 2000s machine learning was applied to many problems in academia and industry. The success was due to the availability powerful computer hardware, the collection of immense data sets and the application of solid mathematical methods. In 2012, deep learning proved to be a breakthrough technology, eclipsing all other methods. The transformer architecture debuted in 2017 and was used to produce impressive generative AI applications. Investment in AI boomed in the 2020s.\n",
+    "\"\"\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "49ae2abf",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:47.869060Z",
+     "iopub.status.busy": "2024-08-08T13:37:47.868752Z",
+     "iopub.status.idle": "2024-08-08T13:37:47.875717Z",
+     "shell.execute_reply": "2024-08-08T13:37:47.874772Z"
+    },
+    "papermill": {
+     "duration": 0.016873,
+     "end_time": "2024-08-08T13:37:47.877838",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:47.860965",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'\\nThe history of artificial intelligence (AI) began in antiquity, with myths, stories and rumors of artificial beings endowed with intelligence or consciousness by master craftsmen. The seeds of modern AI were planted by philosophers who attempted to describe the process of human thinking as the mechanical manipulation of symbols. This work culminated in the invention of the programmable digital computer in the 1940s, a machine based on the abstract essence of mathematical reasoning. This device and the ideas behind it inspired a handful of scientists to begin seriously discussing the possibility of building an electronic brain.\\n\\nThe field of AI research was founded at a workshop held on the campus of Dartmouth College in the U.S. during the summer of 1956.[1] Those who attended would become the leaders of AI research for decades. Many of them predicted that a machine as intelligent as a human being would exist in no more than a generation, and they were given millions of dollars to make this vision come true.[2]\\n\\nEventually, it became obvious that researchers had grossly underestimated the difficulty of the project.[3] In 1974, in response to the criticism from James Lighthill and ongoing pressure from the U.S. Congress, the U.S. and British Governments stopped funding undirected research into artificial intelligence. Seven years later, a visionary initiative by the Japanese Government inspired governments and industry to provide AI with billions of dollars, but by the late 1980s the investors became disillusioned and withdrew funding again. The difficult years that followed would later be known as an \"AI winter\". AI was criticized in the press and avoided by industry until the mid-2000s, but research and funding continued to grow under other names.\\n\\nIn the 1990s and early 2000s machine learning was applied to many problems in academia and industry. The success was due to the availability powerful computer hardware, the collection of immense data sets and the application of solid mathematical methods. In 2012, deep learning proved to be a breakthrough technology, eclipsing all other methods. The transformer architecture debuted in 2017 and was used to produce impressive generative AI applications. Investment in AI boomed in the 2020s.\\n'"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "paragraph"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "e182b7a2",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:47.893616Z",
+     "iopub.status.busy": "2024-08-08T13:37:47.892976Z",
+     "iopub.status.idle": "2024-08-08T13:37:49.449189Z",
+     "shell.execute_reply": "2024-08-08T13:37:49.448198Z"
+    },
+    "papermill": {
+     "duration": 1.566824,
+     "end_time": "2024-08-08T13:37:49.451717",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:47.884893",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import nltk\n",
+    "from nltk.stem import PorterStemmer\n",
+    "from nltk.corpus import stopwords"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "254d72f6",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:49.467729Z",
+     "iopub.status.busy": "2024-08-08T13:37:49.467389Z",
+     "iopub.status.idle": "2024-08-08T13:37:49.596491Z",
+     "shell.execute_reply": "2024-08-08T13:37:49.595404Z"
+    },
+    "papermill": {
+     "duration": 0.139611,
+     "end_time": "2024-08-08T13:37:49.598855",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:49.459244",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[nltk_data] Downloading package punkt to /usr/share/nltk_data...\n",
+      "[nltk_data]   Package punkt is already up-to-date!\n"
+     ]
+    }
+   ],
+   "source": [
+    "nltk.download('punkt')\n",
+    "sentences = nltk.sent_tokenize(paragraph)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "d007115e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:49.614646Z",
+     "iopub.status.busy": "2024-08-08T13:37:49.614295Z",
+     "iopub.status.idle": "2024-08-08T13:37:49.620295Z",
+     "shell.execute_reply": "2024-08-08T13:37:49.619389Z"
+    },
+    "papermill": {
+     "duration": 0.016029,
+     "end_time": "2024-08-08T13:37:49.622238",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:49.606209",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'\\nThe history of artificial intelligence (AI) began in antiquity, with myths, stories and rumors of artificial beings endowed with intelligence or consciousness by master craftsmen.'"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sentences[0]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "ef24e4b6",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:49.638202Z",
+     "iopub.status.busy": "2024-08-08T13:37:49.637677Z",
+     "iopub.status.idle": "2024-08-08T13:37:49.641778Z",
+     "shell.execute_reply": "2024-08-08T13:37:49.640851Z"
+    },
+    "papermill": {
+     "duration": 0.014147,
+     "end_time": "2024-08-08T13:37:49.643720",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:49.629573",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "stemmer = PorterStemmer()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "e57e134f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:49.660690Z",
+     "iopub.status.busy": "2024-08-08T13:37:49.659991Z",
+     "iopub.status.idle": "2024-08-08T13:37:49.665706Z",
+     "shell.execute_reply": "2024-08-08T13:37:49.664789Z"
+    },
+    "papermill": {
+     "duration": 0.015787,
+     "end_time": "2024-08-08T13:37:49.667643",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:49.651856",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'drink'"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "stemmer.stem('Drinking')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "71d648a9",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:49.683813Z",
+     "iopub.status.busy": "2024-08-08T13:37:49.683202Z",
+     "iopub.status.idle": "2024-08-08T13:37:51.124040Z",
+     "shell.execute_reply": "2024-08-08T13:37:51.122906Z"
+    },
+    "papermill": {
+     "duration": 1.451571,
+     "end_time": "2024-08-08T13:37:51.126444",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:49.674873",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[nltk_data] Downloading package wordnet to /usr/share/nltk_data...\n",
+      "[nltk_data]   Package wordnet is already up-to-date!\n",
+      "Archive:  /usr/share/nltk_data/corpora/wordnet.zip\r\n",
+      "   creating: /usr/share/nltk_data/corpora/wordnet/\r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/lexnames  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/data.verb  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/index.adv  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/adv.exc  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/index.verb  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/cntlist.rev  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/data.adj  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/index.adj  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/LICENSE  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/citation.bib  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/noun.exc  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/verb.exc  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/README  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/index.sense  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/data.noun  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/data.adv  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/index.noun  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/adj.exc  \r\n"
+     ]
+    }
+   ],
+   "source": [
+    "from nltk.stem import WordNetLemmatizer\n",
+    "nltk.download('wordnet')\n",
+    "!unzip /usr/share/nltk_data/corpora/wordnet.zip -d /usr/share/nltk_data/corpora/\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "beda9da9",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:51.144348Z",
+     "iopub.status.busy": "2024-08-08T13:37:51.143988Z",
+     "iopub.status.idle": "2024-08-08T13:37:52.744735Z",
+     "shell.execute_reply": "2024-08-08T13:37:52.743736Z"
+    },
+    "papermill": {
+     "duration": 1.61247,
+     "end_time": "2024-08-08T13:37:52.747073",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:51.134603",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'rock'"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "lemmatizer = WordNetLemmatizer()\n",
+    "lemmatizer.lemmatize(\"rocks\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "39d9ef9e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:52.764638Z",
+     "iopub.status.busy": "2024-08-08T13:37:52.764298Z",
+     "iopub.status.idle": "2024-08-08T13:37:52.768637Z",
+     "shell.execute_reply": "2024-08-08T13:37:52.767682Z"
+    },
+    "papermill": {
+     "duration": 0.01538,
+     "end_time": "2024-08-08T13:37:52.770665",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:52.755285",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import re"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "717ebd39",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:52.787662Z",
+     "iopub.status.busy": "2024-08-08T13:37:52.787336Z",
+     "iopub.status.idle": "2024-08-08T13:37:52.792599Z",
+     "shell.execute_reply": "2024-08-08T13:37:52.791735Z"
+    },
+    "papermill": {
+     "duration": 0.015997,
+     "end_time": "2024-08-08T13:37:52.794483",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:52.778486",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "corpus = []\n",
+    "for i in range(len(sentences)):\n",
+    "    review = re.sub('[^a-zA-Z]', ' ', sentences[i])\n",
+    "    review = review.lower()\n",
+    "    corpus.append(review)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "fbb737e4",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:52.811351Z",
+     "iopub.status.busy": "2024-08-08T13:37:52.811057Z",
+     "iopub.status.idle": "2024-08-08T13:37:52.817198Z",
+     "shell.execute_reply": "2024-08-08T13:37:52.816257Z"
+    },
+    "papermill": {
+     "duration": 0.016956,
+     "end_time": "2024-08-08T13:37:52.819282",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:52.802326",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[' the history of artificial intelligence  ai  began in antiquity  with myths  stories and rumors of artificial beings endowed with intelligence or consciousness by master craftsmen ',\n",
+       " 'the seeds of modern ai were planted by philosophers who attempted to describe the process of human thinking as the mechanical manipulation of symbols ',\n",
+       " 'this work culminated in the invention of the programmable digital computer in the     s  a machine based on the abstract essence of mathematical reasoning ',\n",
+       " 'this device and the ideas behind it inspired a handful of scientists to begin seriously discussing the possibility of building an electronic brain ',\n",
+       " 'the field of ai research was founded at a workshop held on the campus of dartmouth college in the u s  during the summer of      ',\n",
+       " '    those who attended would become the leaders of ai research for decades ',\n",
+       " 'many of them predicted that a machine as intelligent as a human being would exist in no more than a generation  and they were given millions of dollars to make this vision come true ',\n",
+       " '     eventually  it became obvious that researchers had grossly underestimated the difficulty of the project ',\n",
+       " '    in       in response to the criticism from james lighthill and ongoing pressure from the u s  congress  the u s  and british governments stopped funding undirected research into artificial intelligence ',\n",
+       " 'seven years later  a visionary initiative by the japanese government inspired governments and industry to provide ai with billions of dollars  but by the late     s the investors became disillusioned and withdrew funding again ',\n",
+       " 'the difficult years that followed would later be known as an  ai winter  ',\n",
+       " 'ai was criticized in the press and avoided by industry until the mid     s  but research and funding continued to grow under other names ',\n",
+       " 'in the     s and early     s machine learning was applied to many problems in academia and industry ',\n",
+       " 'the success was due to the availability powerful computer hardware  the collection of immense data sets and the application of solid mathematical methods ',\n",
+       " 'in       deep learning proved to be a breakthrough technology  eclipsing all other methods ',\n",
+       " 'the transformer architecture debuted in      and was used to produce impressive generative ai applications ',\n",
+       " 'investment in ai boomed in the     s ']"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "corpus"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "4daccdae",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:52.836625Z",
+     "iopub.status.busy": "2024-08-08T13:37:52.836331Z",
+     "iopub.status.idle": "2024-08-08T13:37:52.904738Z",
+     "shell.execute_reply": "2024-08-08T13:37:52.903715Z"
+    },
+    "papermill": {
+     "duration": 0.080209,
+     "end_time": "2024-08-08T13:37:52.907674",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:52.827465",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "histori\n",
+      "artifici\n",
+      "intellig\n",
+      "ai\n",
+      "began\n",
+      "antiqu\n",
+      "myth\n",
+      "stori\n",
+      "rumor\n",
+      "artifici\n",
+      "be\n",
+      "endow\n",
+      "intellig\n",
+      "conscious\n",
+      "master\n",
+      "craftsmen\n",
+      "seed\n",
+      "modern\n",
+      "ai\n",
+      "plant\n",
+      "philosoph\n",
+      "attempt\n",
+      "describ\n",
+      "process\n",
+      "human\n",
+      "think\n",
+      "mechan\n",
+      "manipul\n",
+      "symbol\n",
+      "work\n",
+      "culmin\n",
+      "invent\n",
+      "programm\n",
+      "digit\n",
+      "comput\n",
+      "machin\n",
+      "base\n",
+      "abstract\n",
+      "essenc\n",
+      "mathemat\n",
+      "reason\n",
+      "devic\n",
+      "idea\n",
+      "behind\n",
+      "inspir\n",
+      "hand\n",
+      "scientist\n",
+      "begin\n",
+      "serious\n",
+      "discuss\n",
+      "possibl\n",
+      "build\n",
+      "electron\n",
+      "brain\n",
+      "field\n",
+      "ai\n",
+      "research\n",
+      "found\n",
+      "workshop\n",
+      "held\n",
+      "campu\n",
+      "dartmouth\n",
+      "colleg\n",
+      "u\n",
+      "summer\n",
+      "attend\n",
+      "would\n",
+      "becom\n",
+      "leader\n",
+      "ai\n",
+      "research\n",
+      "decad\n",
+      "mani\n",
+      "predict\n",
+      "machin\n",
+      "intellig\n",
+      "human\n",
+      "would\n",
+      "exist\n",
+      "gener\n",
+      "given\n",
+      "million\n",
+      "dollar\n",
+      "make\n",
+      "vision\n",
+      "come\n",
+      "true\n",
+      "eventu\n",
+      "becam\n",
+      "obviou\n",
+      "research\n",
+      "grossli\n",
+      "underestim\n",
+      "difficulti\n",
+      "project\n",
+      "respons\n",
+      "critic\n",
+      "jame\n",
+      "lighthil\n",
+      "ongo\n",
+      "pressur\n",
+      "u\n",
+      "congress\n",
+      "u\n",
+      "british\n",
+      "govern\n",
+      "stop\n",
+      "fund\n",
+      "undirect\n",
+      "research\n",
+      "artifici\n",
+      "intellig\n",
+      "seven\n",
+      "year\n",
+      "later\n",
+      "visionari\n",
+      "initi\n",
+      "japanes\n",
+      "govern\n",
+      "inspir\n",
+      "govern\n",
+      "industri\n",
+      "provid\n",
+      "ai\n",
+      "billion\n",
+      "dollar\n",
+      "late\n",
+      "investor\n",
+      "becam\n",
+      "disillus\n",
+      "withdrew\n",
+      "fund\n",
+      "difficult\n",
+      "year\n",
+      "follow\n",
+      "would\n",
+      "later\n",
+      "known\n",
+      "ai\n",
+      "winter\n",
+      "ai\n",
+      "critic\n",
+      "press\n",
+      "avoid\n",
+      "industri\n",
+      "mid\n",
+      "research\n",
+      "fund\n",
+      "continu\n",
+      "grow\n",
+      "name\n",
+      "earli\n",
+      "machin\n",
+      "learn\n",
+      "appli\n",
+      "mani\n",
+      "problem\n",
+      "academia\n",
+      "industri\n",
+      "success\n",
+      "due\n",
+      "avail\n",
+      "power\n",
+      "comput\n",
+      "hardwar\n",
+      "collect\n",
+      "immens\n",
+      "data\n",
+      "set\n",
+      "applic\n",
+      "solid\n",
+      "mathemat\n",
+      "method\n",
+      "deep\n",
+      "learn\n",
+      "prove\n",
+      "breakthrough\n",
+      "technolog\n",
+      "eclips\n",
+      "method\n",
+      "transform\n",
+      "architectur\n",
+      "debut\n",
+      "use\n",
+      "produc\n",
+      "impress\n",
+      "gener\n",
+      "ai\n",
+      "applic\n",
+      "invest\n",
+      "ai\n",
+      "boom\n"
+     ]
+    }
+   ],
+   "source": [
+    "#stemming\n",
+    "for sentence in corpus:\n",
+    "    words = nltk.word_tokenize(sentence)\n",
+    "    for word in words:\n",
+    "        if word not in set(stopwords.words('english')):\n",
+    "            print(stemmer.stem(word))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "adb3dae6",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:52.926770Z",
+     "iopub.status.busy": "2024-08-08T13:37:52.926412Z",
+     "iopub.status.idle": "2024-08-08T13:37:52.989941Z",
+     "shell.execute_reply": "2024-08-08T13:37:52.988423Z"
+    },
+    "papermill": {
+     "duration": 0.075995,
+     "end_time": "2024-08-08T13:37:52.992475",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:52.916480",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "history\n",
+      "artificial\n",
+      "intelligence\n",
+      "ai\n",
+      "began\n",
+      "antiquity\n",
+      "myth\n",
+      "story\n",
+      "rumor\n",
+      "artificial\n",
+      "being\n",
+      "endowed\n",
+      "intelligence\n",
+      "consciousness\n",
+      "master\n",
+      "craftsman\n",
+      "seed\n",
+      "modern\n",
+      "ai\n",
+      "planted\n",
+      "philosopher\n",
+      "attempted\n",
+      "describe\n",
+      "process\n",
+      "human\n",
+      "thinking\n",
+      "mechanical\n",
+      "manipulation\n",
+      "symbol\n",
+      "work\n",
+      "culminated\n",
+      "invention\n",
+      "programmable\n",
+      "digital\n",
+      "computer\n",
+      "machine\n",
+      "based\n",
+      "abstract\n",
+      "essence\n",
+      "mathematical\n",
+      "reasoning\n",
+      "device\n",
+      "idea\n",
+      "behind\n",
+      "inspired\n",
+      "handful\n",
+      "scientist\n",
+      "begin\n",
+      "seriously\n",
+      "discussing\n",
+      "possibility\n",
+      "building\n",
+      "electronic\n",
+      "brain\n",
+      "field\n",
+      "ai\n",
+      "research\n",
+      "founded\n",
+      "workshop\n",
+      "held\n",
+      "campus\n",
+      "dartmouth\n",
+      "college\n",
+      "u\n",
+      "summer\n",
+      "attended\n",
+      "would\n",
+      "become\n",
+      "leader\n",
+      "ai\n",
+      "research\n",
+      "decade\n",
+      "many\n",
+      "predicted\n",
+      "machine\n",
+      "intelligent\n",
+      "human\n",
+      "would\n",
+      "exist\n",
+      "generation\n",
+      "given\n",
+      "million\n",
+      "dollar\n",
+      "make\n",
+      "vision\n",
+      "come\n",
+      "true\n",
+      "eventually\n",
+      "became\n",
+      "obvious\n",
+      "researcher\n",
+      "grossly\n",
+      "underestimated\n",
+      "difficulty\n",
+      "project\n",
+      "response\n",
+      "criticism\n",
+      "james\n",
+      "lighthill\n",
+      "ongoing\n",
+      "pressure\n",
+      "u\n",
+      "congress\n",
+      "u\n",
+      "british\n",
+      "government\n",
+      "stopped\n",
+      "funding\n",
+      "undirected\n",
+      "research\n",
+      "artificial\n",
+      "intelligence\n",
+      "seven\n",
+      "year\n",
+      "later\n",
+      "visionary\n",
+      "initiative\n",
+      "japanese\n",
+      "government\n",
+      "inspired\n",
+      "government\n",
+      "industry\n",
+      "provide\n",
+      "ai\n",
+      "billion\n",
+      "dollar\n",
+      "late\n",
+      "investor\n",
+      "became\n",
+      "disillusioned\n",
+      "withdrew\n",
+      "funding\n",
+      "difficult\n",
+      "year\n",
+      "followed\n",
+      "would\n",
+      "later\n",
+      "known\n",
+      "ai\n",
+      "winter\n",
+      "ai\n",
+      "criticized\n",
+      "press\n",
+      "avoided\n",
+      "industry\n",
+      "mid\n",
+      "research\n",
+      "funding\n",
+      "continued\n",
+      "grow\n",
+      "name\n",
+      "early\n",
+      "machine\n",
+      "learning\n",
+      "applied\n",
+      "many\n",
+      "problem\n",
+      "academia\n",
+      "industry\n",
+      "success\n",
+      "due\n",
+      "availability\n",
+      "powerful\n",
+      "computer\n",
+      "hardware\n",
+      "collection\n",
+      "immense\n",
+      "data\n",
+      "set\n",
+      "application\n",
+      "solid\n",
+      "mathematical\n",
+      "method\n",
+      "deep\n",
+      "learning\n",
+      "proved\n",
+      "breakthrough\n",
+      "technology\n",
+      "eclipsing\n",
+      "method\n",
+      "transformer\n",
+      "architecture\n",
+      "debuted\n",
+      "used\n",
+      "produce\n",
+      "impressive\n",
+      "generative\n",
+      "ai\n",
+      "application\n",
+      "investment\n",
+      "ai\n",
+      "boomed\n"
+     ]
+    }
+   ],
+   "source": [
+    "#lemmatization\n",
+    "for sentence in corpus:\n",
+    "    words = nltk.word_tokenize(sentence)\n",
+    "    for word in words:\n",
+    "        if word not in set(stopwords.words('english')):\n",
+    "            print(lemmatizer.lemmatize(word))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "b507b8ad",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:53.011070Z",
+     "iopub.status.busy": "2024-08-08T13:37:53.010743Z",
+     "iopub.status.idle": "2024-08-08T13:37:53.065559Z",
+     "shell.execute_reply": "2024-08-08T13:37:53.064676Z"
+    },
+    "papermill": {
+     "duration": 0.066712,
+     "end_time": "2024-08-08T13:37:53.067876",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:53.001164",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "corpus = []\n",
+    "for i in range(len(sentences)):\n",
+    "    review = re.sub('[^a-zA-Z]', ' ', sentences[i])\n",
+    "    review = review.lower()\n",
+    "    review = review.split()\n",
+    "    review = \" \".join([lemmatizer.lemmatize(word) for word in review if not word  in set(stopwords.words('english'))])\n",
+    "    corpus.append(review)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "0caf48e8",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:53.087017Z",
+     "iopub.status.busy": "2024-08-08T13:37:53.086317Z",
+     "iopub.status.idle": "2024-08-08T13:37:53.090691Z",
+     "shell.execute_reply": "2024-08-08T13:37:53.089714Z"
+    },
+    "papermill": {
+     "duration": 0.015795,
+     "end_time": "2024-08-08T13:37:53.092630",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:53.076835",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "#bag of words\n",
+    "from sklearn.feature_extraction.text import CountVectorizer"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "efabc1b2",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:53.111025Z",
+     "iopub.status.busy": "2024-08-08T13:37:53.110200Z",
+     "iopub.status.idle": "2024-08-08T13:37:53.124370Z",
+     "shell.execute_reply": "2024-08-08T13:37:53.123451Z"
+    },
+    "papermill": {
+     "duration": 0.025516,
+     "end_time": "2024-08-08T13:37:53.126485",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:53.100969",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "cv=CountVectorizer()\n",
+    "X=cv.fit_transform(corpus)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "8762a5d3",
+   "metadata": {
+    "collapsed": true,
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:53.144888Z",
+     "iopub.status.busy": "2024-08-08T13:37:53.144163Z",
+     "iopub.status.idle": "2024-08-08T13:37:53.154527Z",
+     "shell.execute_reply": "2024-08-08T13:37:53.153622Z"
+    },
+    "jupyter": {
+     "outputs_hidden": true
+    },
+    "papermill": {
+     "duration": 0.021561,
+     "end_time": "2024-08-08T13:37:53.156507",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:53.134946",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'history': 71,\n",
+       " 'artificial': 7,\n",
+       " 'intelligence': 79,\n",
+       " 'ai': 2,\n",
+       " 'began': 15,\n",
+       " 'antiquity': 3,\n",
+       " 'myth': 103,\n",
+       " 'story': 133,\n",
+       " 'rumor': 125,\n",
+       " 'being': 18,\n",
+       " 'endowed': 54,\n",
+       " 'consciousness': 31,\n",
+       " 'master': 96,\n",
+       " 'craftsman': 33,\n",
+       " 'seed': 127,\n",
+       " 'modern': 102,\n",
+       " 'planted': 108,\n",
+       " 'philosopher': 107,\n",
+       " 'attempted': 8,\n",
+       " 'describe': 42,\n",
+       " 'process': 115,\n",
+       " 'human': 72,\n",
+       " 'thinking': 138,\n",
+       " 'mechanical': 98,\n",
+       " 'manipulation': 94,\n",
+       " 'symbol': 136,\n",
+       " 'work': 148,\n",
+       " 'culminated': 36,\n",
+       " 'invention': 81,\n",
+       " 'programmable': 117,\n",
+       " 'digital': 46,\n",
+       " 'computer': 29,\n",
+       " 'machine': 92,\n",
+       " 'based': 12,\n",
+       " 'abstract': 0,\n",
+       " 'essence': 55,\n",
+       " 'mathematical': 97,\n",
+       " 'reasoning': 121,\n",
+       " 'device': 43,\n",
+       " 'idea': 73,\n",
+       " 'behind': 17,\n",
+       " 'inspired': 78,\n",
+       " 'handful': 68,\n",
+       " 'scientist': 126,\n",
+       " 'begin': 16,\n",
+       " 'seriously': 128,\n",
+       " 'discussing': 47,\n",
+       " 'possibility': 109,\n",
+       " 'building': 24,\n",
+       " 'electronic': 53,\n",
+       " 'brain': 21,\n",
+       " 'field': 58,\n",
+       " 'research': 122,\n",
+       " 'founded': 60,\n",
+       " 'workshop': 149,\n",
+       " 'held': 70,\n",
+       " 'campus': 25,\n",
+       " 'dartmouth': 37,\n",
+       " 'college': 27,\n",
+       " 'summer': 135,\n",
+       " 'attended': 9,\n",
+       " 'would': 150,\n",
+       " 'become': 14,\n",
+       " 'leader': 89,\n",
+       " 'decade': 40,\n",
+       " 'many': 95,\n",
+       " 'predicted': 111,\n",
+       " 'intelligent': 80,\n",
+       " 'exist': 57,\n",
+       " 'generation': 62,\n",
+       " 'given': 64,\n",
+       " 'million': 101,\n",
+       " 'dollar': 49,\n",
+       " 'make': 93,\n",
+       " 'vision': 144,\n",
+       " 'come': 28,\n",
+       " 'true': 140,\n",
+       " 'eventually': 56,\n",
+       " 'became': 13,\n",
+       " 'obvious': 105,\n",
+       " 'researcher': 123,\n",
+       " 'grossly': 66,\n",
+       " 'underestimated': 141,\n",
+       " 'difficulty': 45,\n",
+       " 'project': 118,\n",
+       " 'response': 124,\n",
+       " 'criticism': 34,\n",
+       " 'james': 84,\n",
+       " 'lighthill': 91,\n",
+       " 'ongoing': 106,\n",
+       " 'pressure': 113,\n",
+       " 'congress': 30,\n",
+       " 'british': 23,\n",
+       " 'government': 65,\n",
+       " 'stopped': 132,\n",
+       " 'funding': 61,\n",
+       " 'undirected': 142,\n",
+       " 'seven': 130,\n",
+       " 'year': 151,\n",
+       " 'later': 88,\n",
+       " 'visionary': 145,\n",
+       " 'initiative': 77,\n",
+       " 'japanese': 85,\n",
+       " 'industry': 76,\n",
+       " 'provide': 120,\n",
+       " 'billion': 19,\n",
+       " 'late': 87,\n",
+       " 'investor': 83,\n",
+       " 'disillusioned': 48,\n",
+       " 'withdrew': 147,\n",
+       " 'difficult': 44,\n",
+       " 'followed': 59,\n",
+       " 'known': 86,\n",
+       " 'winter': 146,\n",
+       " 'criticized': 35,\n",
+       " 'press': 112,\n",
+       " 'avoided': 11,\n",
+       " 'mid': 100,\n",
+       " 'continued': 32,\n",
+       " 'grow': 67,\n",
+       " 'name': 104,\n",
+       " 'early': 51,\n",
+       " 'learning': 90,\n",
+       " 'applied': 5,\n",
+       " 'problem': 114,\n",
+       " 'academia': 1,\n",
+       " 'success': 134,\n",
+       " 'due': 50,\n",
+       " 'availability': 10,\n",
+       " 'powerful': 110,\n",
+       " 'hardware': 69,\n",
+       " 'collection': 26,\n",
+       " 'immense': 74,\n",
+       " 'data': 38,\n",
+       " 'set': 129,\n",
+       " 'application': 4,\n",
+       " 'solid': 131,\n",
+       " 'method': 99,\n",
+       " 'deep': 41,\n",
+       " 'proved': 119,\n",
+       " 'breakthrough': 22,\n",
+       " 'technology': 137,\n",
+       " 'eclipsing': 52,\n",
+       " 'transformer': 139,\n",
+       " 'architecture': 6,\n",
+       " 'debuted': 39,\n",
+       " 'used': 143,\n",
+       " 'produce': 116,\n",
+       " 'impressive': 75,\n",
+       " 'generative': 63,\n",
+       " 'investment': 82,\n",
+       " 'boomed': 20}"
+      ]
+     },
+     "execution_count": 19,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cv.vocabulary_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "65c5323b",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:53.175152Z",
+     "iopub.status.busy": "2024-08-08T13:37:53.174832Z",
+     "iopub.status.idle": "2024-08-08T13:37:53.182363Z",
+     "shell.execute_reply": "2024-08-08T13:37:53.181357Z"
+    },
+    "papermill": {
+     "duration": 0.019206,
+     "end_time": "2024-08-08T13:37:53.184427",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:53.165221",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "history artificial intelligence ai began antiquity myth story rumor artificial being endowed intelligence consciousness master craftsman\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "array([[0, 0, 1, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0,\n",
+       "        0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n",
+       "        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,\n",
+       "        0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0,\n",
+       "        0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,\n",
+       "        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,\n",
+       "        0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])"
+      ]
+     },
+     "execution_count": 20,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "print(corpus[0])\n",
+    "X[0].toarray()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "6ce04776",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:53.203577Z",
+     "iopub.status.busy": "2024-08-08T13:37:53.203248Z",
+     "iopub.status.idle": "2024-08-08T13:37:53.215790Z",
+     "shell.execute_reply": "2024-08-08T13:37:53.214840Z"
+    },
+    "papermill": {
+     "duration": 0.024397,
+     "end_time": "2024-08-08T13:37:53.217779",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:53.193382",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "from sklearn.feature_extraction.text import TfidfVectorizer\n",
+    "cv=TfidfVectorizer(ngram_range=(2,4), max_features=10)\n",
+    "X = cv.fit_transform(corpus)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "id": "af209ea6",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:53.236680Z",
+     "iopub.status.busy": "2024-08-08T13:37:53.236358Z",
+     "iopub.status.idle": "2024-08-08T13:37:53.242523Z",
+     "shell.execute_reply": "2024-08-08T13:37:53.241590Z"
+    },
+    "papermill": {
+     "duration": 0.017902,
+     "end_time": "2024-08-08T13:37:53.244569",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:53.226667",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'artificial intelligence': 2,\n",
+       " 'master craftsman': 9,\n",
+       " 'abstract essence': 0,\n",
+       " 'ai research': 1,\n",
+       " 'many predicted': 3,\n",
+       " 'many predicted machine': 4,\n",
+       " 'many predicted machine intelligent': 5,\n",
+       " 'many problem': 6,\n",
+       " 'many problem academia': 7,\n",
+       " 'many problem academia industry': 8}"
+      ]
+     },
+     "execution_count": 22,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cv.vocabulary_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "id": "c9fceceb",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:53.263972Z",
+     "iopub.status.busy": "2024-08-08T13:37:53.263660Z",
+     "iopub.status.idle": "2024-08-08T13:37:53.270250Z",
+     "shell.execute_reply": "2024-08-08T13:37:53.269325Z"
+    },
+    "papermill": {
+     "duration": 0.018771,
+     "end_time": "2024-08-08T13:37:53.272345",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:53.253574",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[0.        , 0.        , 0.65772873, 0.        , 0.        ,\n",
+       "        0.        , 0.        , 0.        , 0.        , 0.75325488]])"
+      ]
+     },
+     "execution_count": 23,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "X[0].toarray()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "id": "315b5be7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:37:53.292175Z",
+     "iopub.status.busy": "2024-08-08T13:37:53.291831Z",
+     "iopub.status.idle": "2024-08-08T13:38:04.711707Z",
+     "shell.execute_reply": "2024-08-08T13:38:04.710462Z"
+    },
+    "papermill": {
+     "duration": 11.432806,
+     "end_time": "2024-08-08T13:38:04.714364",
+     "exception": false,
+     "start_time": "2024-08-08T13:37:53.281558",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Requirement already satisfied: gensim in /opt/conda/lib/python3.10/site-packages (4.3.2)\r\n",
+      "Requirement already satisfied: numpy>=1.18.5 in /opt/conda/lib/python3.10/site-packages (from gensim) (1.26.4)\r\n",
+      "Requirement already satisfied: scipy>=1.7.0 in /opt/conda/lib/python3.10/site-packages (from gensim) (1.11.4)\r\n",
+      "Requirement already satisfied: smart-open>=1.8.1 in /opt/conda/lib/python3.10/site-packages (from gensim) (6.4.0)\r\n"
+     ]
+    }
+   ],
+   "source": [
+    "! pip install gensim"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "id": "6a52fec1",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:38:04.734969Z",
+     "iopub.status.busy": "2024-08-08T13:38:04.734590Z",
+     "iopub.status.idle": "2024-08-08T13:38:14.316503Z",
+     "shell.execute_reply": "2024-08-08T13:38:14.315321Z"
+    },
+    "papermill": {
+     "duration": 9.594894,
+     "end_time": "2024-08-08T13:38:14.318923",
+     "exception": false,
+     "start_time": "2024-08-08T13:38:04.724029",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "from gensim.models import Word2Vec, KeyedVectors"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "id": "d0cda6a9",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:38:14.340157Z",
+     "iopub.status.busy": "2024-08-08T13:38:14.339190Z",
+     "iopub.status.idle": "2024-08-08T13:42:36.573433Z",
+     "shell.execute_reply": "2024-08-08T13:42:36.572538Z"
+    },
+    "papermill": {
+     "duration": 262.247368,
+     "end_time": "2024-08-08T13:42:36.576113",
+     "exception": false,
+     "start_time": "2024-08-08T13:38:14.328745",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[=================================================-] 99.7% 1658.6/1662.8MB downloaded\n"
+     ]
+    }
+   ],
+   "source": [
+    "import gensim.downloader as api\n",
+    "\n",
+    "wv = api.load(\"word2vec-google-news-300\")\n",
+    "vec_king = wv['king']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "id": "f5d2b07b",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:42:57.258997Z",
+     "iopub.status.busy": "2024-08-08T13:42:57.258239Z",
+     "iopub.status.idle": "2024-08-08T13:42:57.310282Z",
+     "shell.execute_reply": "2024-08-08T13:42:57.309097Z"
+    },
+    "papermill": {
+     "duration": 10.487164,
+     "end_time": "2024-08-08T13:42:57.312452",
+     "exception": false,
+     "start_time": "2024-08-08T13:42:46.825288",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([ 1.25976562e-01,  2.97851562e-02,  8.60595703e-03,  1.39648438e-01,\n",
+       "       -2.56347656e-02, -3.61328125e-02,  1.11816406e-01, -1.98242188e-01,\n",
+       "        5.12695312e-02,  3.63281250e-01, -2.42187500e-01, -3.02734375e-01,\n",
+       "       -1.77734375e-01, -2.49023438e-02, -1.67968750e-01, -1.69921875e-01,\n",
+       "        3.46679688e-02,  5.21850586e-03,  4.63867188e-02,  1.28906250e-01,\n",
+       "        1.36718750e-01,  1.12792969e-01,  5.95703125e-02,  1.36718750e-01,\n",
+       "        1.01074219e-01, -1.76757812e-01, -2.51953125e-01,  5.98144531e-02,\n",
+       "        3.41796875e-01, -3.11279297e-02,  1.04492188e-01,  6.17675781e-02,\n",
+       "        1.24511719e-01,  4.00390625e-01, -3.22265625e-01,  8.39843750e-02,\n",
+       "        3.90625000e-02,  5.85937500e-03,  7.03125000e-02,  1.72851562e-01,\n",
+       "        1.38671875e-01, -2.31445312e-01,  2.83203125e-01,  1.42578125e-01,\n",
+       "        3.41796875e-01, -2.39257812e-02, -1.09863281e-01,  3.32031250e-02,\n",
+       "       -5.46875000e-02,  1.53198242e-02, -1.62109375e-01,  1.58203125e-01,\n",
+       "       -2.59765625e-01,  2.01416016e-02, -1.63085938e-01,  1.35803223e-03,\n",
+       "       -1.44531250e-01, -5.68847656e-02,  4.29687500e-02, -2.46582031e-02,\n",
+       "        1.85546875e-01,  4.47265625e-01,  9.58251953e-03,  1.31835938e-01,\n",
+       "        9.86328125e-02, -1.85546875e-01, -1.00097656e-01, -1.33789062e-01,\n",
+       "       -1.25000000e-01,  2.83203125e-01,  1.23046875e-01,  5.32226562e-02,\n",
+       "       -1.77734375e-01,  8.59375000e-02, -2.18505859e-02,  2.05078125e-02,\n",
+       "       -1.39648438e-01,  2.51464844e-02,  1.38671875e-01, -1.05468750e-01,\n",
+       "        1.38671875e-01,  8.88671875e-02, -7.51953125e-02, -2.13623047e-02,\n",
+       "        1.72851562e-01,  4.63867188e-02, -2.65625000e-01,  8.91113281e-03,\n",
+       "        1.49414062e-01,  3.78417969e-02,  2.38281250e-01, -1.24511719e-01,\n",
+       "       -2.17773438e-01, -1.81640625e-01,  2.97851562e-02,  5.71289062e-02,\n",
+       "       -2.89306641e-02,  1.24511719e-02,  9.66796875e-02, -2.31445312e-01,\n",
+       "        5.81054688e-02,  6.68945312e-02,  7.08007812e-02, -3.08593750e-01,\n",
+       "       -2.14843750e-01,  1.45507812e-01, -4.27734375e-01, -9.39941406e-03,\n",
+       "        1.54296875e-01, -7.66601562e-02,  2.89062500e-01,  2.77343750e-01,\n",
+       "       -4.86373901e-04, -1.36718750e-01,  3.24218750e-01, -2.46093750e-01,\n",
+       "       -3.03649902e-03, -2.11914062e-01,  1.25000000e-01,  2.69531250e-01,\n",
+       "        2.04101562e-01,  8.25195312e-02, -2.01171875e-01, -1.60156250e-01,\n",
+       "       -3.78417969e-02, -1.20117188e-01,  1.15234375e-01, -4.10156250e-02,\n",
+       "       -3.95507812e-02, -8.98437500e-02,  6.34765625e-03,  2.03125000e-01,\n",
+       "        1.86523438e-01,  2.73437500e-01,  6.29882812e-02,  1.41601562e-01,\n",
+       "       -9.81445312e-02,  1.38671875e-01,  1.82617188e-01,  1.73828125e-01,\n",
+       "        1.73828125e-01, -2.37304688e-01,  1.78710938e-01,  6.34765625e-02,\n",
+       "        2.36328125e-01, -2.08984375e-01,  8.74023438e-02, -1.66015625e-01,\n",
+       "       -7.91015625e-02,  2.43164062e-01, -8.88671875e-02,  1.26953125e-01,\n",
+       "       -2.16796875e-01, -1.73828125e-01, -3.59375000e-01, -8.25195312e-02,\n",
+       "       -6.49414062e-02,  5.07812500e-02,  1.35742188e-01, -7.47070312e-02,\n",
+       "       -1.64062500e-01,  1.15356445e-02,  4.45312500e-01, -2.15820312e-01,\n",
+       "       -1.11328125e-01, -1.92382812e-01,  1.70898438e-01, -1.25000000e-01,\n",
+       "        2.65502930e-03,  1.92382812e-01, -1.74804688e-01,  1.39648438e-01,\n",
+       "        2.92968750e-01,  1.13281250e-01,  5.95703125e-02, -6.39648438e-02,\n",
+       "        9.96093750e-02, -2.72216797e-02,  1.96533203e-02,  4.27246094e-02,\n",
+       "       -2.46093750e-01,  6.39648438e-02, -2.25585938e-01, -1.68945312e-01,\n",
+       "        2.89916992e-03,  8.20312500e-02,  3.41796875e-01,  4.32128906e-02,\n",
+       "        1.32812500e-01,  1.42578125e-01,  7.61718750e-02,  5.98144531e-02,\n",
+       "       -1.19140625e-01,  2.74658203e-03, -6.29882812e-02, -2.72216797e-02,\n",
+       "       -4.82177734e-03, -8.20312500e-02, -2.49023438e-02, -4.00390625e-01,\n",
+       "       -1.06933594e-01,  4.24804688e-02,  7.76367188e-02, -1.16699219e-01,\n",
+       "        7.37304688e-02, -9.22851562e-02,  1.07910156e-01,  1.58203125e-01,\n",
+       "        4.24804688e-02,  1.26953125e-01,  3.61328125e-02,  2.67578125e-01,\n",
+       "       -1.01074219e-01, -3.02734375e-01, -5.76171875e-02,  5.05371094e-02,\n",
+       "        5.26428223e-04, -2.07031250e-01, -1.38671875e-01, -8.97216797e-03,\n",
+       "       -2.78320312e-02, -1.41601562e-01,  2.07031250e-01, -1.58203125e-01,\n",
+       "        1.27929688e-01,  1.49414062e-01, -2.24609375e-02, -8.44726562e-02,\n",
+       "        1.22558594e-01,  2.15820312e-01, -2.13867188e-01, -3.12500000e-01,\n",
+       "       -3.73046875e-01,  4.08935547e-03,  1.07421875e-01,  1.06933594e-01,\n",
+       "        7.32421875e-02,  8.97216797e-03, -3.88183594e-02, -1.29882812e-01,\n",
+       "        1.49414062e-01, -2.14843750e-01, -1.83868408e-03,  9.91210938e-02,\n",
+       "        1.57226562e-01, -1.14257812e-01, -2.05078125e-01,  9.91210938e-02,\n",
+       "        3.69140625e-01, -1.97265625e-01,  3.54003906e-02,  1.09375000e-01,\n",
+       "        1.31835938e-01,  1.66992188e-01,  2.35351562e-01,  1.04980469e-01,\n",
+       "       -4.96093750e-01, -1.64062500e-01, -1.56250000e-01, -5.22460938e-02,\n",
+       "        1.03027344e-01,  2.43164062e-01, -1.88476562e-01,  5.07812500e-02,\n",
+       "       -9.37500000e-02, -6.68945312e-02,  2.27050781e-02,  7.61718750e-02,\n",
+       "        2.89062500e-01,  3.10546875e-01, -5.37109375e-02,  2.28515625e-01,\n",
+       "        2.51464844e-02,  6.78710938e-02, -1.21093750e-01, -2.15820312e-01,\n",
+       "       -2.73437500e-01, -3.07617188e-02, -3.37890625e-01,  1.53320312e-01,\n",
+       "        2.33398438e-01, -2.08007812e-01,  3.73046875e-01,  8.20312500e-02,\n",
+       "        2.51953125e-01, -7.61718750e-02, -4.66308594e-02, -2.23388672e-02,\n",
+       "        2.99072266e-02, -5.93261719e-02, -4.66918945e-03, -2.44140625e-01,\n",
+       "       -2.09960938e-01, -2.87109375e-01, -4.54101562e-02, -1.77734375e-01,\n",
+       "       -2.79296875e-01, -8.59375000e-02,  9.13085938e-02,  2.51953125e-01],\n",
+       "      dtype=float32)"
+      ]
+     },
+     "execution_count": 27,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "vec_king"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "id": "b3e86c4f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:43:17.796620Z",
+     "iopub.status.busy": "2024-08-08T13:43:17.795668Z",
+     "iopub.status.idle": "2024-08-08T13:43:17.800265Z",
+     "shell.execute_reply": "2024-08-08T13:43:17.799351Z"
+    },
+    "papermill": {
+     "duration": 10.327488,
+     "end_time": "2024-08-08T13:43:17.802328",
+     "exception": false,
+     "start_time": "2024-08-08T13:43:07.474840",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import pandas as pd \n",
+    "import numpy as np\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "id": "6ce92e21",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:43:38.355081Z",
+     "iopub.status.busy": "2024-08-08T13:43:38.354116Z",
+     "iopub.status.idle": "2024-08-08T13:43:38.399132Z",
+     "shell.execute_reply": "2024-08-08T13:43:38.398157Z"
+    },
+    "papermill": {
+     "duration": 10.377352,
+     "end_time": "2024-08-08T13:43:38.401489",
+     "exception": false,
+     "start_time": "2024-08-08T13:43:28.024137",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "\n",
+    "spam_dataset = pd.read_csv(\"/kaggle/input/sms-spam-collection-dataset/spam.csv\", encoding='latin1')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "id": "a8658ddd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:43:59.013721Z",
+     "iopub.status.busy": "2024-08-08T13:43:59.013205Z",
+     "iopub.status.idle": "2024-08-08T13:43:59.078294Z",
+     "shell.execute_reply": "2024-08-08T13:43:59.077188Z"
+    },
+    "papermill": {
+     "duration": 10.539469,
+     "end_time": "2024-08-08T13:43:59.080604",
+     "exception": false,
+     "start_time": "2024-08-08T13:43:48.541135",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>v1</th>\n",
+       "      <th>v2</th>\n",
+       "      <th>Unnamed: 2</th>\n",
+       "      <th>Unnamed: 3</th>\n",
+       "      <th>Unnamed: 4</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>5567</th>\n",
+       "      <td>spam</td>\n",
+       "      <td>This is the 2nd time we have tried 2 contact u...</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5568</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>Will Ì_ b going to esplanade fr home?</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5569</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>Pity, * was in mood for that. So...any other s...</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5570</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>The guy did some bitching but I acted like i'd...</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5571</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>Rofl. Its true to its name</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        v1                                                 v2 Unnamed: 2  \\\n",
+       "5567  spam  This is the 2nd time we have tried 2 contact u...        NaN   \n",
+       "5568   ham              Will Ì_ b going to esplanade fr home?        NaN   \n",
+       "5569   ham  Pity, * was in mood for that. So...any other s...        NaN   \n",
+       "5570   ham  The guy did some bitching but I acted like i'd...        NaN   \n",
+       "5571   ham                         Rofl. Its true to its name        NaN   \n",
+       "\n",
+       "     Unnamed: 3 Unnamed: 4  \n",
+       "5567        NaN        NaN  \n",
+       "5568        NaN        NaN  \n",
+       "5569        NaN        NaN  \n",
+       "5570        NaN        NaN  \n",
+       "5571        NaN        NaN  "
+      ]
+     },
+     "execution_count": 30,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "spam_dataset.tail()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 31,
+   "id": "08ba7181",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-08T13:44:19.520292Z",
+     "iopub.status.busy": "2024-08-08T13:44:19.519889Z",
+     "iopub.status.idle": "2024-08-08T13:44:19.545214Z",
+     "shell.execute_reply": "2024-08-08T13:44:19.544245Z"
+    },
+    "papermill": {
+     "duration": 10.308093,
+     "end_time": "2024-08-08T13:44:19.547179",
+     "exception": false,
+     "start_time": "2024-08-08T13:44:09.239086",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>v1</th>\n",
+       "      <th>v2</th>\n",
+       "      <th>Unnamed: 2</th>\n",
+       "      <th>Unnamed: 3</th>\n",
+       "      <th>Unnamed: 4</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>count</th>\n",
+       "      <td>5572</td>\n",
+       "      <td>5572</td>\n",
+       "      <td>50</td>\n",
+       "      <td>12</td>\n",
+       "      <td>6</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>unique</th>\n",
+       "      <td>2</td>\n",
+       "      <td>5169</td>\n",
+       "      <td>43</td>\n",
+       "      <td>10</td>\n",
+       "      <td>5</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>top</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>Sorry, I'll call later</td>\n",
+       "      <td>bt not his girlfrnd... G o o d n i g h t . . .@\"</td>\n",
+       "      <td>MK17 92H. 450Ppw 16\"</td>\n",
+       "      <td>GNT:-)\"</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>freq</th>\n",
+       "      <td>4825</td>\n",
+       "      <td>30</td>\n",
+       "      <td>3</td>\n",
+       "      <td>2</td>\n",
+       "      <td>2</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "          v1                      v2  \\\n",
+       "count   5572                    5572   \n",
+       "unique     2                    5169   \n",
+       "top      ham  Sorry, I'll call later   \n",
+       "freq    4825                      30   \n",
+       "\n",
+       "                                               Unnamed: 2  \\\n",
+       "count                                                  50   \n",
+       "unique                                                 43   \n",
+       "top      bt not his girlfrnd... G o o d n i g h t . . .@\"   \n",
+       "freq                                                    3   \n",
+       "\n",
+       "                   Unnamed: 3 Unnamed: 4  \n",
+       "count                      12          6  \n",
+       "unique                     10          5  \n",
+       "top      MK17 92H. 450Ppw 16\"    GNT:-)\"  \n",
+       "freq                        2          2  "
+      ]
+     },
+     "execution_count": 31,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "spam_dataset.describe()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f0ed19af",
+   "metadata": {
+    "papermill": {
+     "duration": 10.342461,
+     "end_time": "2024-08-08T13:44:39.980620",
+     "exception": false,
+     "start_time": "2024-08-08T13:44:29.638159",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "datasetId": 483,
+     "sourceId": 982,
+     "sourceType": "datasetVersion"
+    },
+    {
+     "datasetId": 547699,
+     "sourceId": 998616,
+     "sourceType": "datasetVersion"
+    },
+    {
+     "sourceId": 30097024,
+     "sourceType": "kernelVersion"
+    }
+   ],
+   "dockerImageVersionId": 30746,
+   "isGpuEnabled": false,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.13"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 439.517779,
+   "end_time": "2024-08-08T13:44:51.632167",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-08-08T13:37:32.114388",
+   "version": "2.5.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
