@@ -1,0 +1,1479 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "ac181735",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:14.714836Z",
+     "iopub.status.busy": "2024-08-11T17:49:14.713971Z",
+     "iopub.status.idle": "2024-08-11T17:49:27.274302Z",
+     "shell.execute_reply": "2024-08-11T17:49:27.273212Z"
+    },
+    "papermill": {
+     "duration": 12.576111,
+     "end_time": "2024-08-11T17:49:27.277122",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:14.701011",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import pandas as pd \n",
+    "import numpy as np\n",
+    "import gensim\n",
+    "from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer\n",
+    "import nltk\n",
+    "from nltk.stem import PorterStemmer, WordNetLemmatizer\n",
+    "from nltk.corpus import stopwords\n",
+    "import re\n",
+    "from gensim.models import Word2Vec, KeyedVectors\n",
+    "from sklearn.ensemble import RandomForestClassifier\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from tqdm import tqdm"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "bd566546",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:27.300143Z",
+     "iopub.status.busy": "2024-08-11T17:49:27.299501Z",
+     "iopub.status.idle": "2024-08-11T17:49:28.973479Z",
+     "shell.execute_reply": "2024-08-11T17:49:28.972014Z"
+    },
+    "papermill": {
+     "duration": 1.688628,
+     "end_time": "2024-08-11T17:49:28.976436",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:27.287808",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[nltk_data] Downloading package wordnet to /usr/share/nltk_data...\n",
+      "[nltk_data]   Package wordnet is already up-to-date!\n",
+      "Archive:  /usr/share/nltk_data/corpora/wordnet.zip\r\n",
+      "   creating: /usr/share/nltk_data/corpora/wordnet/\r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/lexnames  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/data.verb  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/index.adv  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/adv.exc  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/index.verb  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/cntlist.rev  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/data.adj  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/index.adj  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/LICENSE  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/citation.bib  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/noun.exc  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/verb.exc  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/README  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/index.sense  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/data.noun  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/data.adv  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/index.noun  \r\n",
+      "  inflating: /usr/share/nltk_data/corpora/wordnet/adj.exc  \r\n"
+     ]
+    }
+   ],
+   "source": [
+    "nltk.download('wordnet')\n",
+    "!unzip /usr/share/nltk_data/corpora/wordnet.zip -d /usr/share/nltk_data/corpora/"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "cf4a1de8",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:29.001843Z",
+     "iopub.status.busy": "2024-08-11T17:49:29.000692Z",
+     "iopub.status.idle": "2024-08-11T17:49:29.048661Z",
+     "shell.execute_reply": "2024-08-11T17:49:29.047614Z"
+    },
+    "papermill": {
+     "duration": 0.063567,
+     "end_time": "2024-08-11T17:49:29.051554",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:28.987987",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "spam_dataset = pd.read_csv(\"/kaggle/input/spam-email-classification/email.csv\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "61d6a503",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:29.075674Z",
+     "iopub.status.busy": "2024-08-11T17:49:29.075259Z",
+     "iopub.status.idle": "2024-08-11T17:49:29.112647Z",
+     "shell.execute_reply": "2024-08-11T17:49:29.111436Z"
+    },
+    "papermill": {
+     "duration": 0.05274,
+     "end_time": "2024-08-11T17:49:29.115568",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:29.062828",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Category</th>\n",
+       "      <th>Message</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>count</th>\n",
+       "      <td>5573</td>\n",
+       "      <td>5573</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>unique</th>\n",
+       "      <td>3</td>\n",
+       "      <td>5158</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>top</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>Sorry, I'll call later</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>freq</th>\n",
+       "      <td>4825</td>\n",
+       "      <td>30</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "       Category                 Message\n",
+       "count      5573                    5573\n",
+       "unique        3                    5158\n",
+       "top         ham  Sorry, I'll call later\n",
+       "freq       4825                      30"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "spam_dataset.describe()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "3aa6c99a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:29.140770Z",
+     "iopub.status.busy": "2024-08-11T17:49:29.139854Z",
+     "iopub.status.idle": "2024-08-11T17:49:29.150631Z",
+     "shell.execute_reply": "2024-08-11T17:49:29.149551Z"
+    },
+    "papermill": {
+     "duration": 0.025592,
+     "end_time": "2024-08-11T17:49:29.152951",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:29.127359",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Category</th>\n",
+       "      <th>Message</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>Go until jurong point, crazy.. Available only ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>Ok lar... Joking wif u oni...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>spam</td>\n",
+       "      <td>Free entry in 2 a wkly comp to win FA Cup fina...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>U dun say so early hor... U c already then say...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>Nah I don't think he goes to usf, he lives aro...</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  Category                                            Message\n",
+       "0      ham  Go until jurong point, crazy.. Available only ...\n",
+       "1      ham                      Ok lar... Joking wif u oni...\n",
+       "2     spam  Free entry in 2 a wkly comp to win FA Cup fina...\n",
+       "3      ham  U dun say so early hor... U c already then say...\n",
+       "4      ham  Nah I don't think he goes to usf, he lives aro..."
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "spam_dataset.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "85a957b0",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:29.178123Z",
+     "iopub.status.busy": "2024-08-11T17:49:29.177365Z",
+     "iopub.status.idle": "2024-08-11T17:49:29.187833Z",
+     "shell.execute_reply": "2024-08-11T17:49:29.186753Z"
+    },
+    "papermill": {
+     "duration": 0.025708,
+     "end_time": "2024-08-11T17:49:29.190346",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:29.164638",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array(['ham', 'spam', '{\"mode\":\"full\"'], dtype=object)"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "spam_dataset[\"Category\"].unique()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "f2ff92c7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:29.215863Z",
+     "iopub.status.busy": "2024-08-11T17:49:29.215313Z",
+     "iopub.status.idle": "2024-08-11T17:49:29.227184Z",
+     "shell.execute_reply": "2024-08-11T17:49:29.226064Z"
+    },
+    "papermill": {
+     "duration": 0.027378,
+     "end_time": "2024-08-11T17:49:29.229580",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:29.202202",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "spam_dataset['is_spam'] = spam_dataset['Category'].map(lambda x : 1 if x == \"spam\" else 0)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "fa729c9a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:29.256225Z",
+     "iopub.status.busy": "2024-08-11T17:49:29.255804Z",
+     "iopub.status.idle": "2024-08-11T17:49:29.267253Z",
+     "shell.execute_reply": "2024-08-11T17:49:29.266104Z"
+    },
+    "papermill": {
+     "duration": 0.02754,
+     "end_time": "2024-08-11T17:49:29.269914",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:29.242374",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Category</th>\n",
+       "      <th>Message</th>\n",
+       "      <th>is_spam</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>Go until jurong point, crazy.. Available only ...</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>Ok lar... Joking wif u oni...</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>spam</td>\n",
+       "      <td>Free entry in 2 a wkly comp to win FA Cup fina...</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>U dun say so early hor... U c already then say...</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>ham</td>\n",
+       "      <td>Nah I don't think he goes to usf, he lives aro...</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  Category                                            Message  is_spam\n",
+       "0      ham  Go until jurong point, crazy.. Available only ...        0\n",
+       "1      ham                      Ok lar... Joking wif u oni...        0\n",
+       "2     spam  Free entry in 2 a wkly comp to win FA Cup fina...        1\n",
+       "3      ham  U dun say so early hor... U c already then say...        0\n",
+       "4      ham  Nah I don't think he goes to usf, he lives aro...        0"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "spam_dataset.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "beacac50",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:29.295564Z",
+     "iopub.status.busy": "2024-08-11T17:49:29.295186Z",
+     "iopub.status.idle": "2024-08-11T17:49:29.303901Z",
+     "shell.execute_reply": "2024-08-11T17:49:29.302519Z"
+    },
+    "papermill": {
+     "duration": 0.024806,
+     "end_time": "2024-08-11T17:49:29.306660",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:29.281854",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.13403911717207967"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "spam_dataset[\"is_spam\"].sum()/ spam_dataset[\"is_spam\"].shape[0]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "89590f0e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:29.334144Z",
+     "iopub.status.busy": "2024-08-11T17:49:29.333093Z",
+     "iopub.status.idle": "2024-08-11T17:49:29.355515Z",
+     "shell.execute_reply": "2024-08-11T17:49:29.354007Z"
+    },
+    "papermill": {
+     "duration": 0.039033,
+     "end_time": "2024-08-11T17:49:29.358073",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:29.319040",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['Go until jurong point, crazy..',\n",
+       " 'Available only in bugis n great world la e buffet... Cine there got amore wat...']"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "nltk.sent_tokenize(spam_dataset['Message'].loc[0])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "97fa50f9",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:29.384584Z",
+     "iopub.status.busy": "2024-08-11T17:49:29.383622Z",
+     "iopub.status.idle": "2024-08-11T17:49:29.392613Z",
+     "shell.execute_reply": "2024-08-11T17:49:29.391496Z"
+    },
+    "papermill": {
+     "duration": 0.024906,
+     "end_time": "2024-08-11T17:49:29.395136",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:29.370230",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "wnl = WordNetLemmatizer()\n",
+    "def preprocess_msg_lemmatize(sentence):\n",
+    "    sentence = re.sub(r\"[^a-zA-Z0-9]\", \" \", sentence)\n",
+    "    words = nltk.word_tokenize(sentence)\n",
+    "    sentence = \" \".join([wnl.lemmatize(word).lower() for word in words if word not in set(stopwords.words('english'))])\n",
+    "    return sentence\n",
+    "stemmer =PorterStemmer()\n",
+    "def preprocess_msg_stemmer(sentence):\n",
+    "    sentence = re.sub(r\"[^a-zA-Z0-9]\", \" \", sentence)\n",
+    "    words = nltk.word_tokenize(sentence)\n",
+    "    sentence = \" \".join([stemmer.stem(word).lower() for word in words if word not in set(stopwords.words('english'))])\n",
+    "    return sentence\n",
+    "    "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "7c8f5a1d",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:49:29.422715Z",
+     "iopub.status.busy": "2024-08-11T17:49:29.421454Z",
+     "iopub.status.idle": "2024-08-11T17:50:06.395037Z",
+     "shell.execute_reply": "2024-08-11T17:50:06.393975Z"
+    },
+    "papermill": {
+     "duration": 36.990413,
+     "end_time": "2024-08-11T17:50:06.397935",
+     "exception": false,
+     "start_time": "2024-08-11T17:49:29.407522",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "spam_dataset['lemmatized_msg'] = spam_dataset['Message'].apply(preprocess_msg_lemmatize)\n",
+    "spam_dataset['stemmed_msg'] = spam_dataset['Message'].apply(preprocess_msg_stemmer)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "a8bb6973",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:06.424187Z",
+     "iopub.status.busy": "2024-08-11T17:50:06.423764Z",
+     "iopub.status.idle": "2024-08-11T17:50:06.976530Z",
+     "shell.execute_reply": "2024-08-11T17:50:06.975210Z"
+    },
+    "papermill": {
+     "duration": 0.569164,
+     "end_time": "2024-08-11T17:50:06.979528",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:06.410364",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "#bag of words\n",
+    "#tf-idf\n",
+    "#word2vec (cbow, skip_gram)\n",
+    "l_bow = CountVectorizer(max_features=2000)\n",
+    "s_bow = CountVectorizer(max_features=2000)\n",
+    "tf_idf_bow = TfidfVectorizer(max_features=2000, ngram_range=(1,2))\n",
+    "l_X = l_bow.fit_transform(spam_dataset['lemmatized_msg'])\n",
+    "s_X = s_bow.fit_transform(spam_dataset['stemmed_msg'])\n",
+    "t_X = tf_idf_bow.fit_transform(spam_dataset['lemmatized_msg'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "f8046169",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:07.006810Z",
+     "iopub.status.busy": "2024-08-11T17:50:07.006307Z",
+     "iopub.status.idle": "2024-08-11T17:50:07.014002Z",
+     "shell.execute_reply": "2024-08-11T17:50:07.012865Z"
+    },
+    "papermill": {
+     "duration": 0.024606,
+     "end_time": "2024-08-11T17:50:07.016463",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:06.991857",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(<5573x2000 sparse matrix of type '<class 'numpy.int64'>'\n",
+       " \twith 42550 stored elements in Compressed Sparse Row format>,\n",
+       " <5573x2000 sparse matrix of type '<class 'numpy.int64'>'\n",
+       " \twith 44059 stored elements in Compressed Sparse Row format>,\n",
+       " <5573x2000 sparse matrix of type '<class 'numpy.float64'>'\n",
+       " \twith 45477 stored elements in Compressed Sparse Row format>)"
+      ]
+     },
+     "execution_count": 14,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "l_X, s_X, t_X"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "867ad459",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:07.043711Z",
+     "iopub.status.busy": "2024-08-11T17:50:07.042722Z",
+     "iopub.status.idle": "2024-08-11T17:50:07.050421Z",
+     "shell.execute_reply": "2024-08-11T17:50:07.049175Z"
+    },
+    "papermill": {
+     "duration": 0.024045,
+     "end_time": "2024-08-11T17:50:07.052969",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:07.028924",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(5573,)"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "Y = spam_dataset['is_spam']\n",
+    "Y.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "a4056fcc",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:07.079621Z",
+     "iopub.status.busy": "2024-08-11T17:50:07.079230Z",
+     "iopub.status.idle": "2024-08-11T17:50:08.500251Z",
+     "shell.execute_reply": "2024-08-11T17:50:08.499114Z"
+    },
+    "papermill": {
+     "duration": 1.437415,
+     "end_time": "2024-08-11T17:50:08.502933",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:07.065518",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9811659192825112"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "x_train, x_test, y_train, y_test = train_test_split(l_X,Y, test_size=0.2, random_state=42)\n",
+    "classifier = RandomForestClassifier()\n",
+    "\n",
+    "classifier.fit(x_train, y_train)\n",
+    "classifier.score(x_test, y_test)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "f17e685d",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:08.531047Z",
+     "iopub.status.busy": "2024-08-11T17:50:08.529860Z",
+     "iopub.status.idle": "2024-08-11T17:50:09.917890Z",
+     "shell.execute_reply": "2024-08-11T17:50:09.916652Z"
+    },
+    "papermill": {
+     "duration": 1.404796,
+     "end_time": "2024-08-11T17:50:09.920537",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:08.515741",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9802690582959641"
+      ]
+     },
+     "execution_count": 17,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "x_train, x_test, y_train, y_test = train_test_split(s_X,Y, test_size=0.2, random_state=42)\n",
+    "classifier = RandomForestClassifier()\n",
+    "\n",
+    "classifier.fit(x_train, y_train)\n",
+    "classifier.score(x_test, y_test)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "3ad37791",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:09.948691Z",
+     "iopub.status.busy": "2024-08-11T17:50:09.947634Z",
+     "iopub.status.idle": "2024-08-11T17:50:11.545756Z",
+     "shell.execute_reply": "2024-08-11T17:50:11.544457Z"
+    },
+    "papermill": {
+     "duration": 1.615101,
+     "end_time": "2024-08-11T17:50:11.548491",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:09.933390",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9766816143497757"
+      ]
+     },
+     "execution_count": 18,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "x_train, x_test, y_train, y_test = train_test_split(t_X, Y, test_size=0.2, random_state=42)\n",
+    "classifier = RandomForestClassifier()\n",
+    "\n",
+    "classifier.fit(x_train, y_train)\n",
+    "classifier.score(x_test, y_test)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "52d98f91",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:11.576897Z",
+     "iopub.status.busy": "2024-08-11T17:50:11.576156Z",
+     "iopub.status.idle": "2024-08-11T17:50:11.582880Z",
+     "shell.execute_reply": "2024-08-11T17:50:11.581720Z"
+    },
+    "papermill": {
+     "duration": 0.023401,
+     "end_time": "2024-08-11T17:50:11.585328",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:11.561927",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "  (0, 1866)\t0.2436582621942033\n",
+      "  (0, 741)\t0.20215950426192347\n",
+      "  (0, 370)\t0.3684027085445512\n",
+      "  (0, 942)\t0.3684027085445512\n",
+      "  (0, 1949)\t0.292336946168411\n",
+      "  (0, 745)\t0.24089423163690768\n",
+      "  (0, 281)\t0.3684027085445512\n",
+      "  (0, 202)\t0.3261751201848034\n",
+      "  (0, 442)\t0.33771518675652046\n",
+      "  (0, 1335)\t0.30227627373148824\n",
+      "  (0, 717)\t0.1931240433675333\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(t_X[0])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "e0cd2898",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:11.613525Z",
+     "iopub.status.busy": "2024-08-11T17:50:11.613100Z",
+     "iopub.status.idle": "2024-08-11T17:50:11.627149Z",
+     "shell.execute_reply": "2024-08-11T17:50:11.625882Z"
+    },
+    "papermill": {
+     "duration": 0.031175,
+     "end_time": "2024-08-11T17:50:11.629548",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:11.598373",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "sentences = spam_dataset['lemmatized_msg'].apply(lambda x: x.split(\" \"))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "a374cac9",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:11.657623Z",
+     "iopub.status.busy": "2024-08-11T17:50:11.656891Z",
+     "iopub.status.idle": "2024-08-11T17:50:11.663875Z",
+     "shell.execute_reply": "2024-08-11T17:50:11.662731Z"
+    },
+    "papermill": {
+     "duration": 0.023591,
+     "end_time": "2024-08-11T17:50:11.666208",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:11.642617",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(5573,)"
+      ]
+     },
+     "execution_count": 21,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sentences.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "id": "390dc56f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:11.694911Z",
+     "iopub.status.busy": "2024-08-11T17:50:11.693840Z",
+     "iopub.status.idle": "2024-08-11T17:50:12.112582Z",
+     "shell.execute_reply": "2024-08-11T17:50:12.111425Z"
+    },
+    "papermill": {
+     "duration": 0.436118,
+     "end_time": "2024-08-11T17:50:12.115504",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:11.679386",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "w2v = Word2Vec(sentences)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "id": "3b135523",
+   "metadata": {
+    "collapsed": true,
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:12.144346Z",
+     "iopub.status.busy": "2024-08-11T17:50:12.143939Z",
+     "iopub.status.idle": "2024-08-11T17:50:12.152935Z",
+     "shell.execute_reply": "2024-08-11T17:50:12.151843Z"
+    },
+    "jupyter": {
+     "outputs_hidden": true
+    },
+    "papermill": {
+     "duration": 0.026286,
+     "end_time": "2024-08-11T17:50:12.155183",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:12.128897",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['vector_size',\n",
+       " 'index_to_key',\n",
+       " 'next_index',\n",
+       " 'key_to_index',\n",
+       " 'vectors',\n",
+       " 'norms',\n",
+       " 'expandos',\n",
+       " 'mapfile_path',\n",
+       " 'vectors_lockf',\n",
+       " '__module__',\n",
+       " '__init__',\n",
+       " '__str__',\n",
+       " '_load_specials',\n",
+       " '_upconvert_old_vocab',\n",
+       " 'allocate_vecattrs',\n",
+       " 'set_vecattr',\n",
+       " 'get_vecattr',\n",
+       " 'resize_vectors',\n",
+       " '__len__',\n",
+       " '__getitem__',\n",
+       " 'get_index',\n",
+       " 'get_vector',\n",
+       " 'word_vec',\n",
+       " 'get_mean_vector',\n",
+       " 'add_vector',\n",
+       " 'add_vectors',\n",
+       " '__setitem__',\n",
+       " 'has_index_for',\n",
+       " '__contains__',\n",
+       " 'most_similar_to_given',\n",
+       " 'closer_than',\n",
+       " 'words_closer_than',\n",
+       " 'rank',\n",
+       " 'vectors_norm',\n",
+       " 'get_normed_vectors',\n",
+       " 'fill_norms',\n",
+       " 'index2entity',\n",
+       " 'index2word',\n",
+       " 'vocab',\n",
+       " 'sort_by_descending_frequency',\n",
+       " 'save',\n",
+       " 'most_similar',\n",
+       " 'similar_by_word',\n",
+       " 'similar_by_key',\n",
+       " 'similar_by_vector',\n",
+       " 'wmdistance',\n",
+       " 'most_similar_cosmul',\n",
+       " 'rank_by_centrality',\n",
+       " 'doesnt_match',\n",
+       " 'cosine_similarities',\n",
+       " 'distances',\n",
+       " 'distance',\n",
+       " 'similarity',\n",
+       " 'n_similarity',\n",
+       " '_log_evaluate_word_analogies',\n",
+       " 'evaluate_word_analogies',\n",
+       " 'log_accuracy',\n",
+       " 'log_evaluate_word_pairs',\n",
+       " 'evaluate_word_pairs',\n",
+       " 'init_sims',\n",
+       " 'unit_normalize_all',\n",
+       " 'relative_cosine_similarity',\n",
+       " 'save_word2vec_format',\n",
+       " 'load_word2vec_format',\n",
+       " 'intersect_word2vec_format',\n",
+       " 'vectors_for_all',\n",
+       " '_upconvert_old_d2vkv',\n",
+       " 'similarity_unseen_docs',\n",
+       " '__doc__',\n",
+       " 'add_lifecycle_event',\n",
+       " 'load',\n",
+       " '_adapt_by_suffix',\n",
+       " '_smart_save',\n",
+       " '_save_specials',\n",
+       " '__dict__',\n",
+       " '__weakref__',\n",
+       " '__new__',\n",
+       " '__repr__',\n",
+       " '__hash__',\n",
+       " '__getattribute__',\n",
+       " '__setattr__',\n",
+       " '__delattr__',\n",
+       " '__lt__',\n",
+       " '__le__',\n",
+       " '__eq__',\n",
+       " '__ne__',\n",
+       " '__gt__',\n",
+       " '__ge__',\n",
+       " '__reduce_ex__',\n",
+       " '__reduce__',\n",
+       " '__subclasshook__',\n",
+       " '__init_subclass__',\n",
+       " '__format__',\n",
+       " '__sizeof__',\n",
+       " '__dir__',\n",
+       " '__class__']"
+      ]
+     },
+     "execution_count": 23,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "w2v.wv.__dir__()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "id": "4a29e1f6",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:12.183580Z",
+     "iopub.status.busy": "2024-08-11T17:50:12.183188Z",
+     "iopub.status.idle": "2024-08-11T17:50:12.192338Z",
+     "shell.execute_reply": "2024-08-11T17:50:12.190827Z"
+    },
+    "papermill": {
+     "duration": 0.025987,
+     "end_time": "2024-08-11T17:50:12.194535",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:12.168548",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_18/1571672212.py:1: DeprecationWarning: Call to deprecated `word_vec` (Use get_vector instead).\n",
+      "  w2v.wv.word_vec(\"sale\") == w2v.wv.get_vector(\"sale\")\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "array([ True,  True,  True,  True,  True,  True,  True,  True,  True,\n",
+       "        True,  True,  True,  True,  True,  True,  True,  True,  True,\n",
+       "        True,  True,  True,  True,  True,  True,  True,  True,  True,\n",
+       "        True,  True,  True,  True,  True,  True,  True,  True,  True,\n",
+       "        True,  True,  True,  True,  True,  True,  True,  True,  True,\n",
+       "        True,  True,  True,  True,  True,  True,  True,  True,  True,\n",
+       "        True,  True,  True,  True,  True,  True,  True,  True,  True,\n",
+       "        True,  True,  True,  True,  True,  True,  True,  True,  True,\n",
+       "        True,  True,  True,  True,  True,  True,  True,  True,  True,\n",
+       "        True,  True,  True,  True,  True,  True,  True,  True,  True,\n",
+       "        True,  True,  True,  True,  True,  True,  True,  True,  True,\n",
+       "        True])"
+      ]
+     },
+     "execution_count": 24,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "w2v.wv.word_vec(\"sale\") == w2v.wv.get_vector(\"sale\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "id": "85935475",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:12.224159Z",
+     "iopub.status.busy": "2024-08-11T17:50:12.223388Z",
+     "iopub.status.idle": "2024-08-11T17:50:12.231782Z",
+     "shell.execute_reply": "2024-08-11T17:50:12.230711Z"
+    },
+    "papermill": {
+     "duration": 0.025837,
+     "end_time": "2024-08-11T17:50:12.234182",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:12.208345",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([-0.04057318,  0.09556414,  0.01153715, -0.01416206,  0.05590406,\n",
+       "       -0.1583303 ,  0.05003724,  0.19673765, -0.07413613, -0.02959237,\n",
+       "       -0.05102929, -0.07824882, -0.03142149,  0.02749333, -0.01736448,\n",
+       "       -0.08373532,  0.00642818, -0.11106173, -0.01963324, -0.18912569,\n",
+       "        0.06259684,  0.01540956,  0.05431125, -0.03956249, -0.0164717 ,\n",
+       "        0.01617389, -0.07266036, -0.09408571, -0.08329018, -0.01057289,\n",
+       "        0.085933  ,  0.07273242,  0.03458877, -0.03505729, -0.05965972,\n",
+       "        0.06087065, -0.04872144, -0.08397283, -0.05455034, -0.18362263,\n",
+       "        0.05620351, -0.08429234, -0.01748542, -0.00977164,  0.07420126,\n",
+       "       -0.00851146, -0.09051185, -0.00677447,  0.08487814,  0.05031484,\n",
+       "        0.05418573, -0.12624477, -0.03672968, -0.00220218, -0.08428143,\n",
+       "        0.05367894,  0.07151145,  0.02128879, -0.13496415,  0.03626819,\n",
+       "        0.05459635,  0.0151512 , -0.02616498, -0.03642149, -0.11648822,\n",
+       "        0.05152294,  0.06280319,  0.05288385, -0.12608883,  0.1038131 ,\n",
+       "       -0.08891559,  0.03404069,  0.11169527, -0.04155622,  0.11409443,\n",
+       "        0.03568775,  0.03139952, -0.00132826, -0.09957325,  0.01980802,\n",
+       "       -0.00704805,  0.02134034, -0.08652921,  0.13517225, -0.05514241,\n",
+       "        0.00403908,  0.00303323,  0.06744662,  0.08997501, -0.00859417,\n",
+       "        0.13638301,  0.05776834,  0.00497622,  0.00991058,  0.15029019,\n",
+       "        0.10706474,  0.07468475, -0.1349136 ,  0.02290369, -0.01251559],\n",
+       "      dtype=float32)"
+      ]
+     },
+     "execution_count": 25,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "w2v.wv.get_vector(\"sale\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "id": "df443ed7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:12.265767Z",
+     "iopub.status.busy": "2024-08-11T17:50:12.264736Z",
+     "iopub.status.idle": "2024-08-11T17:50:12.270265Z",
+     "shell.execute_reply": "2024-08-11T17:50:12.269094Z"
+    },
+    "papermill": {
+     "duration": 0.024599,
+     "end_time": "2024-08-11T17:50:12.272744",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:12.248145",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "vocab = list(w2v.wv.key_to_index.keys())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "id": "a540bc68",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:12.302700Z",
+     "iopub.status.busy": "2024-08-11T17:50:12.301878Z",
+     "iopub.status.idle": "2024-08-11T17:50:12.311317Z",
+     "shell.execute_reply": "2024-08-11T17:50:12.310341Z"
+    },
+    "papermill": {
+     "duration": 0.026799,
+     "end_time": "2024-08-11T17:50:12.313615",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:12.286816",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "def avg_word_vector_sentence(sentence):\n",
+    "    avg_vector = np.zeros((100,))\n",
+    "    word_count = 0\n",
+    "    for word in sentence:\n",
+    "        if word in vocab:\n",
+    "            word_vec = w2v.wv.get_vector(word)\n",
+    "            avg_vector +=word_vec\n",
+    "            word_count+=1\n",
+    "    if word_count!=0:\n",
+    "        avg_vector/=word_count\n",
+    "    else:\n",
+    "        return np.zeros((100,))\n",
+    "    \n",
+    "    return avg_vector\n",
+    "\n",
+    "def avg_w2vec(sentences):\n",
+    "    transformed=[]\n",
+    "    for sentence in tqdm(sentences):\n",
+    "        count=0\n",
+    "        vector=np.zeros(100)\n",
+    "        for word in sentence.split():\n",
+    "            if word in vocab:\n",
+    "                vector+=w2v.wv.get_vector(word)\n",
+    "                count+=1\n",
+    "        if count!=0:\n",
+    "            vector/=count\n",
+    "            transformed.append(vector)\n",
+    "        else:\n",
+    "            transformed.append([])\n",
+    "    return np.array(transformed)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "id": "0b3f2433",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:12.343089Z",
+     "iopub.status.busy": "2024-08-11T17:50:12.342688Z",
+     "iopub.status.idle": "2024-08-11T17:50:12.350096Z",
+     "shell.execute_reply": "2024-08-11T17:50:12.348869Z"
+    },
+    "papermill": {
+     "duration": 0.025219,
+     "end_time": "2024-08-11T17:50:12.352726",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:12.327507",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(5573,)"
+      ]
+     },
+     "execution_count": 28,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "spam_dataset['lemmatized_msg'].shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "id": "e8f74a98",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:12.383315Z",
+     "iopub.status.busy": "2024-08-11T17:50:12.382393Z",
+     "iopub.status.idle": "2024-08-11T17:50:13.240126Z",
+     "shell.execute_reply": "2024-08-11T17:50:13.238882Z"
+    },
+    "papermill": {
+     "duration": 0.875923,
+     "end_time": "2024-08-11T17:50:13.243179",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:12.367256",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "#sentence vector is avg word vector of the words of a sentence\n",
+    "w2v_X = np.array([avg_word_vector_sentence(sentence) for sentence in sentences])\n",
+    "# spam_dataset['sentence_vector'] = avg_w2vec(spam_dataset['lemmatized_msg'])\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "id": "19cc50af",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-08-11T17:50:13.275054Z",
+     "iopub.status.busy": "2024-08-11T17:50:13.274653Z",
+     "iopub.status.idle": "2024-08-11T17:50:16.327269Z",
+     "shell.execute_reply": "2024-08-11T17:50:16.326101Z"
+    },
+    "papermill": {
+     "duration": 3.071784,
+     "end_time": "2024-08-11T17:50:16.329888",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:13.258104",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9668161434977578"
+      ]
+     },
+     "execution_count": 30,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "x_train, x_test, y_train, y_test = train_test_split(w2v_X, Y, test_size=0.2, random_state=42)\n",
+    "classifier = RandomForestClassifier()\n",
+    "\n",
+    "classifier.fit(x_train, y_train)\n",
+    "classifier.score(x_test, y_test)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "09f3dd82",
+   "metadata": {
+    "papermill": {
+     "duration": 0.014961,
+     "end_time": "2024-08-11T17:50:16.359348",
+     "exception": false,
+     "start_time": "2024-08-11T17:50:16.344387",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "datasetId": 547699,
+     "sourceId": 998616,
+     "sourceType": "datasetVersion"
+    },
+    {
+     "datasetId": 946753,
+     "sourceId": 1603933,
+     "sourceType": "datasetVersion"
+    },
+    {
+     "datasetId": 3962399,
+     "sourceId": 6897944,
+     "sourceType": "datasetVersion"
+    },
+    {
+     "datasetId": 1522783,
+     "sourceId": 7263127,
+     "sourceType": "datasetVersion"
+    },
+    {
+     "datasetId": 4812840,
+     "sourceId": 8140416,
+     "sourceType": "datasetVersion"
+    },
+    {
+     "datasetId": 109196,
+     "sourceId": 260807,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 30746,
+   "isGpuEnabled": false,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.13"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 65.964482,
+   "end_time": "2024-08-11T17:50:17.697816",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-08-11T17:49:11.733334",
+   "version": "2.5.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
